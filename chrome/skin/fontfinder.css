@@ -1,6 +1,5 @@
 #fontfinder_statusbar {
     background:transparent url("chrome://fontfinder/skin/ff-off.png") no-repeat;
-    border: 1px inset;
 }
 #fontfinder_statusbar.on {
     background:#fff url("chrome://fontfinder/skin/ff-on.png") no-repeat;
