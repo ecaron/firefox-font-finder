@@ -22,24 +22,14 @@ var fontFinder = {};
       var e = document.getElementById("disable-font-options");
       var e2 = document.getElementById("replace-font-options");
       //Decide whether or not the user wants the statusbar icon displayed
-      if (fontFinder.prefManager.getBoolPref("extensions.fontfinder@bendodson.com.statusbar")) {
-        document.getElementById('fontfinder_statusbar_outer').style.display = '';
-        if (e) {
-          e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
-          e2.addEventListener("popupshowing", fontFinder.showContextMenu, false);
-        }
-      } else {
-        document.getElementById('fontfinder_statusbar_outer').style.display = 'none';
-        if (e) {
-          e.removeEventListener("popupshowing", fontFinder.showContextMenu, false);
-          e2.removeEventListener("popupshowing", fontFinder.showContextMenu, false);
-        }
-      }
+      e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
+      e2.addEventListener("popupshowing", fontFinder.showContextMenu, false);
     } else {
       var e = document.getElementById("disable-font-options-context");
       var e2 = document.getElementById("replace-font-options-context");
       //For the context-menu, we need to turn the listener on/off
       if (fontFinder.prefManager.getBoolPref("extensions.fontfinder@bendodson.com.contextmenu")) {
+        document.getElementById('fontfinder-menu').style.display = 'block';
         if (e) {
           e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
           e2.addEventListener("popupshowing", fontFinder.showContextMenu, false);
@@ -52,11 +42,6 @@ var fontFinder = {};
         }
       }
     }
-  }
-
-  /* Handle disabling the status-bar through the right-click */
-  this.disableStatusBar = function () {
-    fontFinder.prefManager.setBoolPref("extensions.fontfinder@bendodson.com.statusbar", false);
   }
 
   this.populateFonts = function () {
@@ -157,15 +142,17 @@ var fontFinder = {};
     } else {
       // Toggle the event listener and the icon's appearance
       var curWin = document.commandDispatcher.focusedWindow;
-      if (document.getElementById('fontfinder_statusbar').className == "") {
+      var button = document.getElementById('fontfinder_statusbar');
+
+      if (!button.getAttribute("active")) {
         gBrowser.addEventListener("click", fontFinder.statusBarSelect, true);
         gBrowser.addEventListener("focus", fontFinder.doNothing, true);
-        document.getElementById('fontfinder_statusbar').className = 'on';
+        button.setAttribute("active", "true");
         curWin.document.getElementsByTagName("body")[0].style.cursor = 'crosshair';
       } else {
         gBrowser.removeEventListener("click", fontFinder.statusBarSelect, true);
         gBrowser.removeEventListener("focus", fontFinder.doNothing, true);
-        document.getElementById('fontfinder_statusbar').className = "";
+        button.removeAttribute("active");
         curWin.document.getElementsByTagName("body")[0].style.cursor = '';
       }
     }
@@ -183,7 +170,8 @@ var fontFinder = {};
     fontFinder.doNothing(e);
 
     // Remove the event listener and set the icon back to "off"
-    document.getElementById('fontfinder_statusbar').className = "";
+    document.getElementById('fontfinder_statusbar').removeAttribute("active");
+
     var curWin = document.commandDispatcher.focusedWindow;
     curWin.document.getElementsByTagName("body")[0].style.cursor = '';
     gBrowser.removeEventListener("click", fontFinder.statusBarSelect, true);
@@ -689,17 +677,13 @@ var fontFinder = {};
   this.onLoad = function () {
     this.loaded = true;
     /* Toggle whether the statusbar icon is displayed */
-    if (!fontFinder.prefManager.getBoolPref("extensions.fontfinder@bendodson.com.statusbar")) {
-      document.getElementById('fontfinder_statusbar_outer').style.display = 'none';
-    } else {
-      var e = document.getElementById("disable-font-options");
-      if (e) {
-        e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
-      }
-      e = document.getElementById("replace-font-options");
-      if (e) {
-        e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
-      }
+    var e = document.getElementById("disable-font-options");
+    if (e) {
+      e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
+    }
+    e = document.getElementById("replace-font-options");
+    if (e) {
+      e.addEventListener("popupshowing", fontFinder.showContextMenu, false);
     }
 
     /* Toggle whether the context-menu is displayed */
