@@ -87,7 +87,12 @@ var fontFinder = {};
             alert("Cannot disable font, 'serif' is the core font");
           };
         } else {
-          item.setAttribute("onclick", 'fontFinder.disableFont("' + docFonts[i] + '")');
+          //item.setAttribute("onclick", 'fontFinder.disableFont("'+docFonts[i]+'")');
+          item.setAttribute("docFonts", docFonts[i]);
+          item.addEventListener("click", function (e) {
+            var d = e.target.getAttribute("docFonts");
+            fontFinder.disableFont(d);
+          }, false);
         }
         disableElementStatusbar.appendChild(item);
         item = document.createElementNS(XUL_NS, "menuitem");
@@ -97,18 +102,33 @@ var fontFinder = {};
             alert("Cannot disable font, 'serif' is the core font");
           };
         } else {
-          item.setAttribute("onclick", 'fontFinder.disableFont("' + docFonts[i] + '")');
+          //item.setAttribute("onclick", 'fontFinder.disableFont("'+docFonts[i]+'")');
+          item.setAttribute("docFonts", docFonts[i]);
+          item.addEventListener("click", function (e) {
+            var d = e.target.getAttribute("docFonts");
+            fontFinder.disableFont(d);
+          }, false);
         }
         disableElementContextmenu.appendChild(item);
 
         //The replace options
         item = document.createElementNS(XUL_NS, "menuitem");
         item.setAttribute("label", docFonts[i]);
-        item.setAttribute("onclick", 'fontFinder.replaceFont("' + docFonts[i] + '")');
+        //item.setAttribute("onclick", 'fontFinder.replaceFont("'+docFonts[i]+'")');
+        item.setAttribute("docFonts", docFonts[i]);
+        item.addEventListener("click", function (e) {
+          var d = e.target.getAttribute("docFonts");
+          fontFinder.replaceFont(d);
+        }, false);
         replaceElementStatusbar.appendChild(item);
         item = document.createElementNS(XUL_NS, "menuitem");
         item.setAttribute("label", docFonts[i]);
-        item.setAttribute("onclick", 'fontFinder.replaceFont("' + docFonts[i] + '")');
+        //item.setAttribute("onclick", 'fontFinder.replaceFont("'+docFonts[i]+'")');
+        item.setAttribute("docFonts", docFonts[i]);
+        item.addEventListener("click", function (e) {
+          var d = e.target.getAttribute("docFonts");
+          fontFinder.replaceFont(d);
+        }, false);
         replaceElementContextmenu.appendChild(item);
       }
       fontFinder.namespace.analyzedFonts = true;
@@ -741,6 +761,43 @@ window.addEventListener("load", function () {
   //Reset the stored data whenever the tab is changed
   gBrowser.tabContainer.addEventListener("TabSelect", fontFinder.reset, true);
   gBrowser.tabContainer.addEventListener("TabOpen", fontFinder.reset, true);
+
+  //Welcome page
+  (function () {
+    //Detect Firefox version
+    var version = "";
+    try {
+      version = (navigator.userAgent.match(/Firefox\/([\d\.]*)/) || navigator.userAgent.match(/Thunderbird\/([\d\.]*)/))[1];
+    } catch (e) {}
+
+    function welcome(version) {
+      if (fontFinder.prefManager.getCharPref("extensions.fontfinder@bendodson.com.currentVersion") == version)
+        return;
+      //Showing welcome screen
+      setTimeout(function () {
+        var newTab = getBrowser().addTab("http://add0n.com/font-finder.html?version=" + version);
+        getBrowser().selectedTab = newTab;
+      }, 5000);
+      fontFinder.prefManager.setCharPref("extensions.fontfinder@bendodson.com.currentVersion", version);
+    }
+
+    //FF < 4.*
+    var versionComparator = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
+      .getService(Components.interfaces.nsIVersionComparator)
+      .compare(version, "4.0");
+    if (versionComparator < 0) {
+      var extMan = Components.classes["@mozilla.org/extensions/manager;1"].getService(Components.interfaces.nsIExtensionManager);
+      var addon = extMan.getItemForID("fontfinder@bendodson.com");
+      welcome(addon.version);
+    }
+    //FF > 4.*
+    else {
+      Components.utils.import("resource://gre/modules/AddonManager.jsm");
+      AddonManager.getAddonByID("fontfinder@bendodson.com", function (addon) {
+        welcome(addon.version);
+      });
+    }
+  })();
 }, false);
 
 /* Allow tracking on if any preferences are changed */
